@@ -69,6 +69,7 @@ h2 { margin: 4px 0 0; overflow-wrap: anywhere; font: 600 clamp(19px, 2.1vw, 26px
 .meta-box { min-width: 0; }
 .meta-label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; }
 .meta-box strong { overflow-wrap: anywhere; font: 600 15px var(--mono); }
+.meta-box.historical-meta strong { color: var(--muted); font-weight: 500; }
 .detail-section { padding: 17px 0; border-bottom: 1px solid var(--line-soft); }
 .detail-section:last-child { border-bottom: 0; }
 .detail-section h3 { margin: 0 0 9px; font-size: 13px; font-weight: 600; }

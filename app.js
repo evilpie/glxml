@@ -162,14 +162,10 @@
         return va.localeCompare(vb, undefined, { numeric: true });
       });
     const removedVersion = removals.length ? maps.feature.get(removals[0].name)?.version : null;
-    const requirement = node('div', 'meta-box');
+    const requirement = node('div', removedVersion ? 'meta-box historical-meta' : 'meta-box');
     requirement.append(node('span', 'meta-label', 'FIRST CORE PROFILE REQUIREMENT'));
     const requirementValue = node('strong');
-    requirementValue.append(
-      removedVersion
-        ? node('del', '', `OpenGL ${requiredVersion}`)
-        : document.createTextNode(`OpenGL ${requiredVersion}`),
-    );
+    requirementValue.textContent = `OpenGL ${requiredVersion}`;
     requirement.append(requirementValue);
     parent.append(requirement);
     if (removedVersion) {
