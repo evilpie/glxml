@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "format": "biome format --write app.js registry.js",
+    "check:js": "biome check app.js registry.js"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.8"
+  }
+}
