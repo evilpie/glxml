@@ -181,35 +181,46 @@
     append(box, node('span', 'meta-label', label), node('strong', '', value));
     parent.append(box);
   }
-  function firstCoreRequirement(features) {
-    return (
-      features
-        .filter((item) => item.api === 'gl' && item.profile !== 'compatibility')
+  function firstRequirements(features) {
+    const byApi = new Map();
+    for (const item of features) {
+      if (!['gl', 'gles2'].includes(item.api) || (item.api === 'gl' && item.profile === 'compatibility')) {
+        continue;
+      }
+      const current = byApi.get(item.api);
+      const version = maps.feature.get(item.name)?.version || '999';
+      const currentVersion = current ? maps.feature.get(current.name)?.version || '999' : null;
+      if (!current || version.localeCompare(currentVersion, undefined, { numeric: true }) < 0) {
+        byApi.set(item.api, item);
+      }
+    }
+    return [...byApi.values()];
+  }
+  function addRequirementMeta(parent, requirements, removed) {
+    const apiLabels = { gl: 'OpenGL', gles2: 'OpenGL ES' };
+    const profileLabels = { core: 'Core', compatibility: 'Compatibility' };
+    for (const requirement of requirements) {
+      const api = requirement.api;
+      const removals = removed
+        .filter((item) => item.api === api && (api !== 'gl' || item.profile === 'core'))
         .sort((a, b) => {
           const va = maps.feature.get(a.name)?.version || '999';
           const vb = maps.feature.get(b.name)?.version || '999';
           return va.localeCompare(vb, undefined, { numeric: true });
-        })[0] || null
-    );
-  }
-  function addCoreRequirementMeta(parent, core, removed) {
-    const requiredVersion = maps.feature.get(core.name)?.version || core.name;
-    const removals = removed
-      .filter((item) => item.api === 'gl' && item.profile === 'core')
-      .sort((a, b) => {
-        const va = maps.feature.get(a.name)?.version || '999';
-        const vb = maps.feature.get(b.name)?.version || '999';
-        return va.localeCompare(vb, undefined, { numeric: true });
-      });
-    const removedVersion = removals.length ? maps.feature.get(removals[0].name)?.version : null;
-    const requirement = node('div', removedVersion ? 'meta-box historical-meta' : 'meta-box');
-    requirement.append(node('span', 'meta-label', 'FIRST CORE PROFILE REQUIREMENT'));
-    const requirementValue = node('strong');
-    requirementValue.textContent = `OpenGL ${requiredVersion}`;
-    requirement.append(requirementValue);
-    parent.append(requirement);
-    if (removedVersion) {
-      addMeta(parent, 'REMOVED IN', `OpenGL ${removedVersion}`);
+        });
+      const requiredVersion = maps.feature.get(requirement.name)?.version || requirement.name;
+      const removedVersion = removals.length ? maps.feature.get(removals[0].name)?.version : null;
+      const box = node('div', removedVersion ? 'meta-box historical-meta' : 'meta-box');
+      box.append(node('span', 'meta-label', api === 'gl' ? 'CORE SINCE' : 'ES SINCE'));
+      box.append(node('strong', '', `${apiLabels[api] || api} ${requiredVersion}`));
+      parent.append(box);
+      if (removedVersion) {
+        const profile = removals[0].profile;
+        const label = profile
+          ? `REMOVED FROM ${profileLabels[profile] || profile} (${apiLabels[api] || api})`
+          : `REMOVED IN ${apiLabels[api] || api}`;
+        addMeta(parent, label, `${apiLabels[api] || api} ${removedVersion}`);
+      }
     }
   }
   function renderEnum(row, body) {
@@ -219,10 +230,10 @@
     const extensions = uniqueEntries(familyRows.flatMap((item) => item.extensions));
     const features = uniqueEntries(familyRows.flatMap((item) => item.features));
     const removed = uniqueEntries(familyRows.flatMap((item) => item.removed));
-    const core = firstCoreRequirement(features);
-    if (core) {
+    const requirements = firstRequirements(features);
+    if (requirements.length) {
       const meta = node('div', 'meta-grid');
-      addCoreRequirementMeta(meta, core, removed);
+      addRequirementMeta(meta, requirements, removed);
       body.append(meta);
     }
     const suffix = row.type && row.type !== 'i' ? row.type : '';
@@ -287,10 +298,10 @@
     }
   }
   function renderCommand(row, body) {
-    const core = firstCoreRequirement(row.features);
-    if (core) {
+    const requirements = firstRequirements(row.features);
+    if (requirements.length) {
       const meta = node('div', 'meta-grid');
-      addCoreRequirementMeta(meta, core, row.removed);
+      addRequirementMeta(meta, requirements, row.removed);
       body.append(meta);
     }
     body.append(commandSignature(row));
