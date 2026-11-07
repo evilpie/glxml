@@ -193,17 +193,6 @@
     body.append(
       node('pre', 'signature', `#define ${row.name.padEnd(33)} ${row.value || ''}${suffix}`),
     );
-    if (core) {
-      const url = maps.feature.get(core.name)?.spec_url;
-      if (url) {
-        body.append(
-          section(
-            'Core specification',
-            external(url, `OpenGL ${maps.feature.get(core.name).version} core specification`),
-          ),
-        );
-      }
-    }
     if (row.alias_of) {
       body.append(section('Alias of', links('enum', [row.alias_of])));
     }
@@ -212,11 +201,6 @@
     }
     if (row.comment) {
       body.append(section('Registry note', node('p', '', row.comment)));
-    }
-    body.append(section('Extensions', itemLinks('extension', extensions)));
-    body.append(section('Core and API feature requirements', itemLinks('feature', features)));
-    if (removed.length) {
-      body.append(section('Removed by feature', itemLinks('feature', removed)));
     }
     const groups = [...new Set(familyRows.flatMap((item) => item.groups))];
     const groupCommands = [...new Set(familyRows.flatMap((item) => item.group_commands))].sort();
@@ -243,6 +227,11 @@
       commandContent.append(note);
     }
     body.append(section('Commands using its parameter groups', commandContent));
+    body.append(section('Extensions', itemLinks('extension', extensions)));
+    body.append(section('Core and API feature requirements', itemLinks('feature', features)));
+    if (removed.length) {
+      body.append(section('Removed by feature', itemLinks('feature', removed)));
+    }
     const sameValue = (enumsByValue.get(row.value) || []).filter((name) => name !== row.name);
     if (sameValue.length) {
       const content = node('div');
