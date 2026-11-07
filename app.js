@@ -103,6 +103,14 @@
       if (tags.length) {
         line.append(node('span', 'small-tag', tags.join(' · ')));
       }
+      if (kind === 'extension') {
+        const url = maps.extension.get(entry.name)?.url;
+        if (url) {
+          const specification = external(url, 'Khronos');
+          specification.classList.add('specification-link');
+          line.append(specification);
+        }
+      }
       list.append(line);
     }
     return list.childNodes.length ? list : node('p', 'muted', 'None listed in gl.xml');
@@ -276,16 +284,6 @@
       body.append(
         section('Commands introduced by associated extensions', links('command', shared)),
       );
-    }
-    const specs = node('div', 'stack-list');
-    for (const ext of extensions) {
-      const url = maps.extension.get(ext.name)?.url;
-      if (url) {
-        specs.append(append(node('div', 'stack-item'), external(url, ext.name)));
-      }
-    }
-    if (specs.childNodes.length) {
-      body.append(section('Extension specifications', specs));
     }
   }
   function renderCommand(row, body) {

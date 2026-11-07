@@ -2,6 +2,10 @@
 
 A static, searchable browser for Khronos `gl.xml`. The page parses the XML in the browser; there is no backend, build step, or generated data file.
 
+## Browser support
+
+Targets current evergreen browsers, including Firefox ESR 153 and newer. The JavaScript uses native modern APIs such as `BigInt`, `RegExp.escape()`, and `String.prototype.matchAll()` without polyfills or transpilation.
+
 ## Update the registry
 
 ```bash
