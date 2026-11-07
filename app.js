@@ -27,6 +27,15 @@
       new Map(rows.map((row) => [row.name, row])),
     ]),
   );
+  const enumsByValue = new Map();
+  for (const row of data.enums) {
+    if (!row.value) {
+      continue;
+    }
+    const matches = enumsByValue.get(row.value) || [];
+    matches.push(row.name);
+    enumsByValue.set(row.value, matches);
+  }
   const labels = {
     enum: 'CONSTANT',
     command: 'COMMAND',
@@ -206,6 +215,15 @@
       commandContent.append(note);
     }
     body.append(section('Commands using its parameter groups', commandContent));
+    const sameValue = (enumsByValue.get(row.value) || []).filter((name) => name !== row.name);
+    if (sameValue.length) {
+      const content = node('div');
+      content.append(links('enum', sameValue));
+      content.append(
+        node('p', 'muted', 'Matching values do not necessarily mean the constants are aliases.'),
+      );
+      body.append(section('Other constants with the same value', content));
+    }
     const shared = [
       ...new Set(extensions.flatMap((ext) => maps.extension.get(ext.name)?.commands || [])),
     ].sort();
@@ -416,6 +434,9 @@
     for (const { kind, row } of found.slice(0, visible)) {
       const item = link(kind, row.name);
       item.className = 'result';
+      if (row.alias_of || row.removed?.length) {
+        item.classList.add('result-secondary');
+      }
       const top = node('span', 'result-top');
       append(top, node('span', 'kind', labels[kind]), node('span', 'result-name', row.name));
       item.replaceChildren(top);
