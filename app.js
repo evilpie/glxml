@@ -172,16 +172,18 @@
     addMeta(meta, 'VERSION', row.version || 'Unspecified');
     addMeta(meta, 'API', row.api || 'Unspecified');
     body.append(meta);
+    const bar = node('div', 'action-bar');
+    bar.append(external(row.spec_url || data.registry_url,
+      row.spec_url ? `View OpenGL ${row.version} specification` : 'View OpenGL Registry'));
+    body.append(bar);
     body.append(section(`Required constants (${row.enums.length})`, links('enum', row.enums)));
     body.append(section(`Required commands (${row.commands.length})`, links('command', row.commands)));
     if (row.removed_enums.length) body.append(section('Removed constants', links('enum', row.removed_enums)));
     if (row.removed_commands.length) body.append(section('Removed commands', links('command', row.removed_commands)));
-    body.append(section('Official specifications', external(row.spec_url || data.registry_url,
-      row.spec_url ? `OpenGL ${row.version} specification` : 'OpenGL Registry index')));
   }
   function renderGroup(row, body) {
     if (!row.defined) body.append(node('p', 'muted group-note',
-      'This group is referenced in gl.xml but has no explicit group definition.'));
+      'Groups are referenced in gl.xml, but have no explicit group definitions. Membership is inferred from enum and command parameter references.'));
     if (row.comment) body.append(section('Registry note', node('p', '', row.comment)));
     body.append(section(`Constants (${row.enums.length})`, links('enum', row.enums)));
     const list = node('div', 'stack-list');
