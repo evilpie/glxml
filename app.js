@@ -212,11 +212,11 @@
     const features = uniqueEntries(familyRows.flatMap((item) => item.features));
     const removed = uniqueEntries(familyRows.flatMap((item) => item.removed));
     const core = firstCoreRequirement(features);
-    const meta = node('div', 'meta-grid');
     if (core) {
+      const meta = node('div', 'meta-grid');
       addCoreRequirementMeta(meta, core, removed);
+      body.append(meta);
     }
-    body.append(meta);
     const suffix = row.type && row.type !== 'i' ? row.type : '';
     body.append(
       node('pre', 'signature', `#define ${row.name.padEnd(33)} ${row.value || ''}${suffix}`),
