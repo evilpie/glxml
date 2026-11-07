@@ -53,9 +53,9 @@
     return element;
   }
   function append(parent, ...children) {
-    children.forEach((child) => {
+    for (const child of children) {
       parent.append(child);
-    });
+    }
     return parent;
   }
   function link(kind, name, label = name) {
@@ -80,14 +80,14 @@
       return node('p', 'muted', empty);
     }
     const wrap = node('div', 'chip-list');
-    names.forEach((name) => {
+    for (const name of names) {
       wrap.append(link(kind, name));
-    });
+    }
     return wrap;
   }
   function itemLinks(kind, entries) {
     const list = node('div', 'stack-list');
-    entries.forEach((entry) => {
+    for (const entry of entries) {
       const line = node('div', 'stack-item');
       line.append(link(kind, entry.name));
       const tags = [entry.api, entry.profile].filter(Boolean);
@@ -95,14 +95,14 @@
         line.append(node('span', 'small-tag', tags.join(' · ')));
       }
       list.append(line);
-    });
+    }
     return list.childNodes.length ? list : node('p', 'muted', 'None listed in gl.xml');
   }
   function aliasesFor(record) {
     const found = new Set([record.name]);
     const queue = [record.name];
-    while (queue.length) {
-      const current = queue.shift();
+    for (let index = 0; index < queue.length; index += 1) {
+      const current = queue[index];
       const row = maps.enum.get(current);
       if (!row) {
         continue;
@@ -197,12 +197,12 @@
     if (groupCommands.length > 5) {
       const note = node('p', 'more-context');
       note.append(node('span', 'muted', `${groupCommands.length - 5} more. See more in `));
-      groups.forEach((group, index) => {
+      for (const [index, group] of groups.entries()) {
         if (index) {
           note.append(node('span', 'muted', ', '));
         }
         note.append(link('group', group));
-      });
+      }
       commandContent.append(note);
     }
     body.append(section('Commands using its parameter groups', commandContent));
@@ -215,12 +215,12 @@
       );
     }
     const specs = node('div', 'stack-list');
-    extensions.forEach((ext) => {
+    for (const ext of extensions) {
       const url = maps.extension.get(ext.name)?.url;
       if (url) {
         specs.append(append(node('div', 'stack-item'), external(url, ext.name)));
       }
-    });
+    }
     if (specs.childNodes.length) {
       body.append(section('Extension specifications', specs));
     }
@@ -233,14 +233,14 @@
     const groupedParams = row.params.filter((param) => param.groups.length);
     if (groupedParams.length) {
       const list = node('div', 'stack-list');
-      groupedParams.forEach((param) => {
+      for (const param of groupedParams) {
         const line = node('div', 'stack-item');
-        param.groups.forEach((group) => {
+        for (const group of param.groups) {
           line.append(link('group', group));
-        });
+        }
         line.append(node('span', 'small-tag', param.name));
         list.append(line);
-      });
+      }
       body.append(section('Parameter groups', list));
     }
     body.append(section('Extensions', itemLinks('extension', row.extensions)));
@@ -298,11 +298,11 @@
     }
     body.append(section(`Constants (${row.enums.length})`, links('enum', row.enums)));
     const list = node('div', 'stack-list');
-    row.parameters.forEach((item) => {
+    for (const item of row.parameters) {
       const line = node('div', 'stack-item');
       append(line, link('command', item.command), node('span', 'small-tag', item.parameter));
       list.append(line);
-    });
+    }
     body.append(
       section(
         `Command parameters (${row.parameters.length})`,
@@ -323,20 +323,22 @@
     append(heading, node('span', 'eyebrow', `${labels[kind]} / GL.XML`), node('h2', '', row.name));
     detail.append(heading);
     const body = node('div', 'detail-body');
-    if (kind === 'enum') {
-      renderEnum(row, body);
-    }
-    if (kind === 'command') {
-      renderCommand(row, body);
-    }
-    if (kind === 'extension') {
-      renderExtension(row, body);
-    }
-    if (kind === 'feature') {
-      renderFeature(row, body);
-    }
-    if (kind === 'group') {
-      renderGroup(row, body);
+    switch (kind) {
+      case 'enum':
+        renderEnum(row, body);
+        break;
+      case 'command':
+        renderCommand(row, body);
+        break;
+      case 'extension':
+        renderExtension(row, body);
+        break;
+      case 'feature':
+        renderFeature(row, body);
+        break;
+      case 'group':
+        renderGroup(row, body);
+        break;
     }
     detail.append(body);
   }
@@ -425,7 +427,7 @@
             : kind === 'group'
               ? `${row.enums.length} constants · ${row.commands.length} commands`
               : kind === 'feature'
-                ? `OpenGL ${row.version || ''}`
+                ? `${row.api === 'gles2' ? 'OpenGL ES' : 'OpenGL'} ${row.version || ''}`
                 : row.supported.join(' · ');
       item.append(node('span', 'result-sub', sub || ''));
       results.append(item);
@@ -438,11 +440,11 @@
     more.hidden = found.length <= visible;
     more.textContent = `Show more results (${found.length - visible} remaining)`;
     const active = location.hash;
-    results.querySelectorAll('a').forEach((a) => {
+    for (const a of results.querySelectorAll('a')) {
       if (a.getAttribute('href') === active) {
         a.classList.add('selected');
       }
-    });
+    }
   }
   for (const [kind, rows] of Object.entries(kinds)) {
     document.querySelector(`#count-${kind}`).textContent = rows.length.toLocaleString();
@@ -483,18 +485,18 @@
     drawResults();
     search.focus();
   });
-  document.querySelectorAll('.filter').forEach((button) => {
+  for (const button of document.querySelectorAll('.filter')) {
     button.addEventListener('click', () => {
       filter = button.dataset.kind;
       visible = 80;
-      document.querySelectorAll('.filter').forEach((item) => {
+      for (const item of document.querySelectorAll('.filter')) {
         const selected = item === button;
         item.classList.toggle('active', selected);
         item.setAttribute('aria-pressed', String(selected));
-      });
+      }
       drawResults();
     });
-  });
+  }
   more.addEventListener('click', () => {
     visible += 80;
     drawResults();
