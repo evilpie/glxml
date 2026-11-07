@@ -161,7 +161,7 @@
   }
   function renderExtension(row, body) {
     const bar = node('div', 'action-bar');
-    if (row.url) bar.append(external(row.url, 'Read Khronos specification'));
+    if (row.url) bar.append(external(row.url, 'View on Khronos Registry'));
     body.append(bar);
     body.append(section('Supported APIs', node('p', 'mono', row.supported.join(' · ') || 'Unspecified')));
     body.append(section(`Constants (${row.enums.length})`, links('enum', row.enums)));

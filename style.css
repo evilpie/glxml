@@ -81,6 +81,8 @@ h2 { margin: 4px 0 0; overflow-wrap: anywhere; font: 600 clamp(19px, 2.1vw, 26px
 .external-link { color: var(--link); font-size: 13px; text-decoration: none; overflow-wrap: anywhere; }
 .signature { padding: 13px; color: var(--text); background: #f5f7f9; border: 1px solid var(--line); border-radius: 3px; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.6 var(--mono); }
 .action-bar { padding-top: 16px; }
+.action-bar .external-link { display: inline-flex; align-items: center; padding: 9px 13px; border: 1px solid var(--link); border-radius: 4px; background: #f2f7fc; font-weight: 600; }
+.action-bar .external-link:hover { color: #fff; background: var(--link); text-decoration: none; }
 footer { max-width: 1280px; margin: auto; padding: 18px 24px 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 footer span { margin-left: 8px; }
 @media (max-width: 800px) { .workspace { grid-template-columns: 1fr; } .results { max-height: 280px; } .detail-panel, .empty-detail { min-height: 280px; } }
