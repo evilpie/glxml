@@ -15,13 +15,9 @@
   "linter": {
     "enabled": true,
     "rules": {
+      "recommended": true,
       "style": {
         "useBlockStatements": "error"
-      },
-      "suspicious": {
-        "useIterableCallbackReturn": "off",
-        "noRedundantUseStrict": "off",
-        "noAssignInExpressions": "off"
       }
     }
   }

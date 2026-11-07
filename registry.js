@@ -25,7 +25,8 @@
       }
       let row = enumMap.get(name);
       if (!row) {
-        enumMap.set(name, (row = { name, value: null, alias_of: null, apis: [] }));
+        row = { name, value: null, alias_of: null, apis: [] };
+        enumMap.set(name, row);
       }
       ['value', 'comment', 'type'].forEach((k) => {
         if (attr(e, k) && !row[k]) {
@@ -79,18 +80,19 @@
         });
       }
     });
-    all('enums > enum[group], enum[group]').forEach((e) =>
+    all('enums > enum[group], enum[group]').forEach((e) => {
       (attr(e, 'group') || '').split(',').forEach((name) => {
         if (!name) {
           return;
         }
         let g = groupMap.get(name);
         if (!g) {
-          groupMap.set(name, (g = { name, defined: false, enums: [] }));
+          g = { name, defined: false, enums: [] };
+          groupMap.set(name, g);
         }
         g.enums.push(attr(e, 'name'));
-      }),
-    );
+      });
+    });
     const blocks = (e, tag) =>
       all(`:scope > ${tag}`, e).map((b) => ({
         api: attr(b, 'api'),
@@ -102,7 +104,7 @@
           .map((x) => attr(x, 'name'))
           .filter(Boolean),
       }));
-    all('feature').forEach((e) =>
+    all('feature').forEach((e) => {
       data.features.push({
         name: attr(e, 'name'),
         version: attr(e, 'number'),
@@ -110,16 +112,16 @@
         spec_url: glSpec(attr(e, 'number'), attr(e, 'api')),
         requires: blocks(e, 'require'),
         removes: blocks(e, 'remove'),
-      }),
-    );
-    all('extensions > extension').forEach((e) =>
+      });
+    });
+    all('extensions > extension').forEach((e) => {
       data.extensions.push({
         name: attr(e, 'name'),
         supported: (attr(e, 'supported') || '').split('|'),
         url: extensionUrl(attr(e, 'name')),
         requires: blocks(e, 'require'),
-      }),
-    );
+      });
+    });
     data.groups = [...groupMap.values()].map((g) => ({
       ...g,
       enums: unique(g.enums).sort(),
@@ -129,7 +131,7 @@
     const em = new Map(data.enums.map((x) => [x.name, x])),
       cm = new Map(data.commands.map((x) => [x.name, x])),
       gm = new Map(data.groups.map((x) => [x.name, x]));
-    data.enums.forEach((r) =>
+    data.enums.forEach((r) => {
       Object.assign(r, {
         apis: unique(r.apis),
         groups: [],
@@ -138,21 +140,25 @@
         removed: [],
         aliases: [],
         group_commands: [],
-      }),
-    );
-    data.commands.forEach((r) => Object.assign(r, { extensions: [], features: [], removed: [] }));
-    data.groups.forEach((g) =>
+      });
+    });
+    data.commands.forEach((r) => {
+      Object.assign(r, { extensions: [], features: [], removed: [] });
+    });
+    data.groups.forEach((g) => {
       g.enums.forEach((n) => {
         if (em.has(n)) {
           em.get(n).groups.push(g.name);
         }
-      }),
-    );
-    data.commands.forEach((c) =>
-      c.params.forEach((p) =>
-        p.groups.forEach((n) => gm.get(n)?.parameters.push({ command: c.name, parameter: p.name })),
-      ),
-    );
+      });
+    });
+    data.commands.forEach((c) => {
+      c.params.forEach((p) => {
+        p.groups.forEach((n) => {
+          gm.get(n)?.parameters.push({ command: c.name, parameter: p.name });
+        });
+      });
+    });
     data.groups.forEach((g) => {
       g.parameters.sort(
         (a, b) => a.command.localeCompare(b.command) || a.parameter.localeCompare(b.parameter),
@@ -162,8 +168,12 @@
     const assign = (rows, field, target, api) =>
       rows.forEach((b) => {
         const entry = { name: field.name, api: b.api || api, profile: b.profile };
-        (b.enums || []).forEach((n) => em.get(n)?.[target].push(entry));
-        (b.commands || []).forEach((n) => cm.get(n)?.[target].push(entry));
+        (b.enums || []).forEach((n) => {
+          em.get(n)?.[target].push(entry);
+        });
+        (b.commands || []).forEach((n) => {
+          cm.get(n)?.[target].push(entry);
+        });
       });
     data.features.forEach((f) => {
       f.enums = unique(f.requires.flatMap((b) => b.enums));
@@ -184,13 +194,13 @@
       }
       r.group_commands = unique(r.groups.flatMap((n) => gm.get(n)?.commands || [])).sort();
     });
-    data.commands.forEach((r) =>
+    data.commands.forEach((r) => {
       r.aliases.forEach((n) => {
         if (cm.has(n) && !cm.get(n).aliases.includes(r.name)) {
           cm.get(n).aliases.push(r.name);
         }
-      }),
-    );
+      });
+    });
     return data;
   }
   function extensionUrl(name) {

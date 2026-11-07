@@ -53,7 +53,9 @@
     return element;
   }
   function append(parent, ...children) {
-    children.forEach((child) => parent.append(child));
+    children.forEach((child) => {
+      parent.append(child);
+    });
     return parent;
   }
   function link(kind, name, label = name) {
@@ -78,7 +80,9 @@
       return node('p', 'muted', empty);
     }
     const wrap = node('div', 'chip-list');
-    names.forEach((name) => wrap.append(link(kind, name)));
+    names.forEach((name) => {
+      wrap.append(link(kind, name));
+    });
     return wrap;
   }
   function itemLinks(kind, entries) {
@@ -231,7 +235,9 @@
       const list = node('div', 'stack-list');
       groupedParams.forEach((param) => {
         const line = node('div', 'stack-item');
-        param.groups.forEach((group) => line.append(link('group', group)));
+        param.groups.forEach((group) => {
+          line.append(link('group', group));
+        });
         line.append(node('span', 'small-tag', param.name));
         list.append(line);
       });
@@ -477,7 +483,7 @@
     drawResults();
     search.focus();
   });
-  document.querySelectorAll('.filter').forEach((button) =>
+  document.querySelectorAll('.filter').forEach((button) => {
     button.addEventListener('click', () => {
       filter = button.dataset.kind;
       visible = 80;
@@ -487,8 +493,8 @@
         item.setAttribute('aria-pressed', String(selected));
       });
       drawResults();
-    }),
-  );
+    });
+  });
   more.addEventListener('click', () => {
     visible += 80;
     drawResults();
