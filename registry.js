@@ -15,7 +15,7 @@
     const groupMap=new Map(); all('groups > group').forEach(g=>{const name=attr(g,'name');if(name)groupMap.set(name,{name,defined:true,comment:attr(g,'comment'),enums:all(':scope > enum',g).map(x=>attr(x,'name')).filter(Boolean)});});
     all('enums > enum[group], enum[group]').forEach(e=>(attr(e,'group')||'').split(',').forEach(name=>{if(!name)return;let g=groupMap.get(name);if(!g)groupMap.set(name,g={name,defined:false,enums:[]});g.enums.push(attr(e,'name'));}));
     const blocks=(e,tag)=>all(`:scope > ${tag}`,e).map(b=>({api:attr(b,'api'),profile:attr(b,'profile'),enums:all(':scope > enum',b).map(x=>attr(x,'name')).filter(Boolean),commands:all(':scope > command',b).map(x=>attr(x,'name')).filter(Boolean)}));
-    all('feature').forEach(e=>data.features.push({name:attr(e,'name'),version:attr(e,'number'),api:attr(e,'api'),spec_url:attr(e,'api')==='gl'?glSpec(attr(e,'number')):null,requires:blocks(e,'require'),removes:blocks(e,'remove')}));
+    all('feature').forEach(e=>data.features.push({name:attr(e,'name'),version:attr(e,'number'),api:attr(e,'api'),spec_url:glSpec(attr(e,'number'),attr(e,'api')),requires:blocks(e,'require'),removes:blocks(e,'remove')}));
     all('extensions > extension').forEach(e=>data.extensions.push({name:attr(e,'name'),supported:(attr(e,'supported')||'').split('|'),url:extensionUrl(attr(e,'name')),requires:blocks(e,'require')}));
     data.groups=[...groupMap.values()].map(g=>({...g,enums:unique(g.enums).sort(),parameters:[],commands:[]}));
     const em=new Map(data.enums.map(x=>[x.name,x])), cm=new Map(data.commands.map(x=>[x.name,x])), gm=new Map(data.groups.map(x=>[x.name,x]));
@@ -32,7 +32,11 @@
     return data;
   }
   function extensionUrl(name){const m=/^GL_([A-Za-z0-9]+)_(.+)$/.exec(name||'');return m?`https://registry.khronos.org/OpenGL/extensions/${m[1]}/${m[1]}_${m[2]}.txt`:null;}
-  function glSpec(v){const known={'1.0':'glspec10.pdf','1.1':'glspec11.pdf','1.2':'glspec121.pdf','1.3':'glspec13.pdf','1.4':'glspec14.pdf','1.5':'glspec15.pdf','2.0':'glspec20.pdf','2.1':'glspec21.pdf','3.0':'glspec30.pdf','3.1':'glspec31.pdf'};if(v&&!known[v]&&/^(3\.[23]|4\.[0-6])$/.test(v))known[v]=`glspec${v.replace('.','')}.core.pdf`;return known[v]?`https://registry.khronos.org/OpenGL/specs/gl/${known[v]}`:null;}
+  function glSpec(v,api){
+    if(api==='gles2'&&/^(1\.[01]|2\.0|3\.[0-2])$/.test(v||''))return `https://registry.khronos.org/OpenGL/specs/es/${v}/es_spec_${v}.pdf`;
+    if(api!=='gl')return null;
+    const known={'1.0':'glspec10.pdf','1.1':'glspec11.pdf','1.2':'glspec121.pdf','1.3':'glspec13.pdf','1.4':'glspec14.pdf','1.5':'glspec15.pdf','2.0':'glspec20.pdf','2.1':'glspec21.pdf','3.0':'glspec30.pdf','3.1':'glspec31.pdf'};if(v&&!known[v]&&/^(3\.[23]|4\.[0-6])$/.test(v))known[v]=`glspec${v.replace('.','')}.core.pdf`;return known[v]?`https://registry.khronos.org/OpenGL/specs/gl/${known[v]}`:null;
+  }
   root.hydrateRegistry=hydrateRegistry;
   if(typeof module!=='undefined'&&module.exports)module.exports=hydrateRegistry;
 })(typeof window==='undefined'?globalThis:window);

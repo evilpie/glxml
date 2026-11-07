@@ -172,10 +172,12 @@
     addMeta(meta, 'VERSION', row.version || 'Unspecified');
     addMeta(meta, 'API', row.api || 'Unspecified');
     body.append(meta);
-    const bar = node('div', 'action-bar');
-    bar.append(external(row.spec_url || data.registry_url,
-      row.spec_url ? `View OpenGL ${row.version} specification` : 'View OpenGL Registry'));
-    body.append(bar);
+    if (row.spec_url) {
+      const bar = node('div', 'action-bar');
+      const apiName = row.api === 'gles2' ? 'OpenGL ES' : 'OpenGL';
+      bar.append(external(row.spec_url, `View ${apiName} ${row.version} specification`));
+      body.append(bar);
+    }
     body.append(section(`Required constants (${row.enums.length})`, links('enum', row.enums)));
     body.append(section(`Required commands (${row.commands.length})`, links('command', row.commands)));
     if (row.removed_enums.length) body.append(section('Removed constants', links('enum', row.removed_enums)));
