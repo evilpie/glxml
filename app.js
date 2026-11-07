@@ -141,6 +141,41 @@
     append(box, node('span', 'meta-label', label), node('strong', '', value));
     parent.append(box);
   }
+  function firstCoreRequirement(features) {
+    return (
+      features
+        .filter((item) => item.api === 'gl' && item.profile !== 'compatibility')
+        .sort((a, b) => {
+          const va = maps.feature.get(a.name)?.version || '999';
+          const vb = maps.feature.get(b.name)?.version || '999';
+          return va.localeCompare(vb, undefined, { numeric: true });
+        })[0] || null
+    );
+  }
+  function addCoreRequirementMeta(parent, core, removed) {
+    const requiredVersion = maps.feature.get(core.name)?.version || core.name;
+    const removals = removed
+      .filter((item) => item.api === 'gl' && item.profile === 'core')
+      .sort((a, b) => {
+        const va = maps.feature.get(a.name)?.version || '999';
+        const vb = maps.feature.get(b.name)?.version || '999';
+        return va.localeCompare(vb, undefined, { numeric: true });
+      });
+    const removedVersion = removals.length ? maps.feature.get(removals[0].name)?.version : null;
+    const requirement = node('div', 'meta-box');
+    requirement.append(node('span', 'meta-label', 'FIRST CORE PROFILE REQUIREMENT'));
+    const requirementValue = node('strong');
+    requirementValue.append(
+      removedVersion
+        ? node('del', '', `OpenGL ${requiredVersion}`)
+        : document.createTextNode(`OpenGL ${requiredVersion}`),
+    );
+    requirement.append(requirementValue);
+    parent.append(requirement);
+    if (removedVersion) {
+      addMeta(parent, 'REMOVED IN', `OpenGL ${removedVersion}`);
+    }
+  }
   function renderEnum(row, body) {
     const family = aliasesFor(row);
     const relatives = family.filter((name) => name !== row.name);
@@ -148,30 +183,20 @@
     const extensions = uniqueEntries(familyRows.flatMap((item) => item.extensions));
     const features = uniqueEntries(familyRows.flatMap((item) => item.features));
     const removed = uniqueEntries(familyRows.flatMap((item) => item.removed));
-    const core = features
-      .filter((item) => item.api === 'gl' && item.profile !== 'compatibility')
-      .sort((a, b) => {
-        const va = maps.feature.get(a.name)?.version || '999';
-        const vb = maps.feature.get(b.name)?.version || '999';
-        return va.localeCompare(vb, undefined, { numeric: true });
-      });
+    const core = firstCoreRequirement(features);
     const meta = node('div', 'meta-grid');
     addMeta(meta, 'REGISTRY VALUE', row.value || 'Alias; value unavailable');
-    addMeta(
-      meta,
-      'FIRST CORE PROFILE REQUIREMENT',
-      core.length
-        ? `OpenGL ${maps.feature.get(core[0].name)?.version || core[0].name}`
-        : 'Not listed',
-    );
+    if (core) {
+      addCoreRequirementMeta(meta, core, removed);
+    }
     body.append(meta);
-    if (core.length) {
-      const url = maps.feature.get(core[0].name)?.spec_url;
+    if (core) {
+      const url = maps.feature.get(core.name)?.spec_url;
       if (url) {
         body.append(
           section(
             'Core specification',
-            external(url, `OpenGL ${maps.feature.get(core[0].name).version} core specification`),
+            external(url, `OpenGL ${maps.feature.get(core.name).version} core specification`),
           ),
         );
       }
@@ -244,6 +269,12 @@
     }
   }
   function renderCommand(row, body) {
+    const core = firstCoreRequirement(row.features);
+    if (core) {
+      const meta = node('div', 'meta-grid');
+      addCoreRequirementMeta(meta, core, row.removed);
+      body.append(meta);
+    }
     body.append(node('pre', 'signature', row.signature));
     if (row.aliases.length) {
       body.append(section('Aliases', links('command', row.aliases)));
