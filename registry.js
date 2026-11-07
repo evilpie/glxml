@@ -61,9 +61,8 @@
           name: p.querySelector('name')?.textContent || '',
           groups: (attr(p, 'group') || '').split(',').filter(Boolean),
         })),
-        aliases: all(':scope > alias', e)
-          .map((a) => attr(a, 'name'))
-          .filter(Boolean),
+        alias_of: attr(e.querySelector(':scope > alias'), 'name'),
+        aliases: [],
       });
     }
     const groupMap = new Map();
@@ -205,10 +204,8 @@
       r.group_commands = unique(r.groups.flatMap((n) => gm.get(n)?.commands || [])).sort();
     }
     for (const r of data.commands) {
-      for (const n of r.aliases) {
-        if (cm.has(n) && !cm.get(n).aliases.includes(r.name)) {
-          cm.get(n).aliases.push(r.name);
-        }
+      if (cm.has(r.alias_of)) {
+        cm.get(r.alias_of).aliases.push(r.name);
       }
     }
     return data;

@@ -147,17 +147,17 @@
     signature.append(document.createTextNode(row.signature.slice(offset)));
     return signature;
   }
-  function aliasesFor(record) {
+  function aliasesFor(record, kind = 'enum') {
     const found = new Set([record.name]);
     const queue = [record.name];
     for (let index = 0; index < queue.length; index += 1) {
       const current = queue[index];
-      const row = maps.enum.get(current);
+      const row = maps[kind].get(current);
       if (!row) {
         continue;
       }
       for (const name of [row.alias_of, ...row.aliases]) {
-        if (name && !found.has(name) && maps.enum.has(name)) {
+        if (name && !found.has(name) && maps[kind].has(name)) {
           found.add(name);
           queue.push(name);
         }
@@ -283,6 +283,8 @@
     }
   }
   function renderCommand(row, body) {
+    const family = aliasesFor(row, 'command');
+    const relatives = family.filter((name) => name !== row.name && name !== row.alias_of);
     const requirements = firstRequirements(row.features);
     if (requirements.length) {
       const meta = node('div', 'meta-grid');
@@ -290,8 +292,11 @@
       body.append(meta);
     }
     body.append(commandSignature(row));
-    if (row.aliases.length) {
-      body.append(section('Aliases', links('command', row.aliases)));
+    if (row.alias_of) {
+      body.append(section('Alias of', links('command', [row.alias_of])));
+    }
+    if (relatives.length) {
+      body.append(section('Aliases in the registry', links('command', relatives)));
     }
     const groupedParams = row.params.filter((param) => param.groups.length);
     if (groupedParams.length) {
