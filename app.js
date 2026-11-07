@@ -185,11 +185,14 @@
     const removed = uniqueEntries(familyRows.flatMap((item) => item.removed));
     const core = firstCoreRequirement(features);
     const meta = node('div', 'meta-grid');
-    addMeta(meta, 'REGISTRY VALUE', row.value || 'Alias; value unavailable');
     if (core) {
       addCoreRequirementMeta(meta, core, removed);
     }
     body.append(meta);
+    const suffix = row.type && row.type !== 'i' ? row.type : '';
+    body.append(
+      node('pre', 'signature', `#define ${row.name.padEnd(33)} ${row.value || ''}${suffix}`),
+    );
     if (core) {
       const url = maps.feature.get(core.name)?.spec_url;
       if (url) {
