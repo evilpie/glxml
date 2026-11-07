@@ -465,7 +465,7 @@
     const query = search.value.trim().toLowerCase();
     const found = [];
     for (const [kind, rows] of Object.entries(kinds)) {
-      if (filter !== 'all' && filter !== kind) {
+      if ((filter === 'all' && kind === 'group') || (filter !== 'all' && filter !== kind)) {
         continue;
       }
       for (const row of rows) {
@@ -521,7 +521,9 @@
   for (const [kind, rows] of Object.entries(kinds)) {
     document.querySelector(`#count-${kind}`).textContent = rows.length.toLocaleString();
   }
-  document.querySelector('#count-all').textContent = Object.values(kinds)
+  document.querySelector('#count-all').textContent = Object.entries(kinds)
+    .filter(([kind]) => kind !== 'group')
+    .map(([, rows]) => rows)
     .reduce((n, rows) => n + rows.length, 0)
     .toLocaleString();
   const source = document.querySelector('#source');
