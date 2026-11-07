@@ -441,7 +441,11 @@
       return 1;
     }
     const name = row.name.toLowerCase();
+    const displayName = row.display_name?.toLowerCase();
     if (name === query) {
+      return 100;
+    }
+    if (displayName === query) {
       return 100;
     }
     if (kind === 'enum' && numericMatch(row.value, query)) {
@@ -450,7 +454,13 @@
     if (name.startsWith(query)) {
       return 70;
     }
+    if (displayName?.startsWith(query)) {
+      return 70;
+    }
     if (name.includes(query)) {
+      return 50;
+    }
+    if (displayName?.includes(query)) {
       return 50;
     }
     if (kind === 'enum' && row.value?.toLowerCase().includes(query)) {
@@ -460,6 +470,22 @@
       return 15;
     }
     return 0;
+  }
+  function resultSubtitle(kind, row) {
+    switch (kind) {
+      case 'enum':
+        return row.value;
+      case 'command':
+        return row.signature;
+      case 'group':
+        return `${row.enums.length} constants · ${row.commands.length} commands`;
+      case 'feature':
+        return row.display_name;
+      case 'extension':
+        return row.supported.join(' · ');
+      default:
+        return '';
+    }
   }
   function drawResults() {
     const query = search.value.trim().toLowerCase();
@@ -491,17 +517,7 @@
       const top = node('span', 'result-top');
       append(top, node('span', 'kind', labels[kind]), node('span', 'result-name', row.name));
       item.replaceChildren(top);
-      const sub =
-        kind === 'enum'
-          ? row.value
-          : kind === 'command'
-            ? row.signature
-            : kind === 'group'
-              ? `${row.enums.length} constants · ${row.commands.length} commands`
-              : kind === 'feature'
-                ? `${row.api === 'gles2' ? 'OpenGL ES' : 'OpenGL'} ${row.version || ''}`
-                : row.supported.join(' · ');
-      item.append(node('span', 'result-sub', sub || ''));
+      item.append(node('span', 'result-sub', resultSubtitle(kind, row) || ''));
       results.append(item);
     }
     if (!found.length) {

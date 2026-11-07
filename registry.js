@@ -105,11 +105,20 @@
           .filter(Boolean),
       }));
     for (const e of all('feature')) {
+      const api = attr(e, 'api');
+      const version = attr(e, 'number');
+      const apiLabel =
+        {
+          gles1: 'OpenGL ES CM',
+          gles2: 'OpenGL ES',
+          glsc2: 'OpenGL SC',
+        }[api] || 'OpenGL';
       data.features.push({
         name: attr(e, 'name'),
-        version: attr(e, 'number'),
-        api: attr(e, 'api'),
-        spec_url: glSpec(attr(e, 'number'), attr(e, 'api')),
+        version,
+        api,
+        display_name: `${apiLabel} ${version || ''}`.trim(),
+        spec_url: glSpec(version, api),
         requires: blocks(e, 'require'),
         removes: blocks(e, 'remove'),
       });
