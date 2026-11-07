@@ -107,6 +107,38 @@
     }
     return list.childNodes.length ? list : node('p', 'muted', 'None listed in gl.xml');
   }
+  function commandSignature(row) {
+    const signature = node('pre', 'signature');
+    const argumentStart = row.signature.indexOf('(');
+    const linkedParams = row.params
+      .map((param) => ({
+        name: param.name,
+        group: param.groups.find((group) => maps.group.has(group)),
+      }))
+      .filter((param) => param.name && param.group);
+    const matches = [];
+    for (const param of linkedParams) {
+      const pattern = new RegExp(`\\b${RegExp.escape(param.name)}\\b`, 'g');
+      for (const match of row.signature.matchAll(pattern)) {
+        if (match.index > argumentStart) {
+          matches.push({ start: match.index, end: match.index + param.name.length, ...param });
+          break;
+        }
+      }
+    }
+    matches.sort((a, b) => a.start - b.start);
+    let offset = 0;
+    for (const match of matches) {
+      if (match.start < offset) {
+        continue;
+      }
+      signature.append(document.createTextNode(row.signature.slice(offset, match.start)));
+      signature.append(link('group', match.group, match.name));
+      offset = match.end;
+    }
+    signature.append(document.createTextNode(row.signature.slice(offset)));
+    return signature;
+  }
   function aliasesFor(record) {
     const found = new Set([record.name]);
     const queue = [record.name];
@@ -263,7 +295,7 @@
       addCoreRequirementMeta(meta, core, row.removed);
       body.append(meta);
     }
-    body.append(node('pre', 'signature', row.signature));
+    body.append(commandSignature(row));
     if (row.aliases.length) {
       body.append(section('Aliases', links('command', row.aliases)));
     }
