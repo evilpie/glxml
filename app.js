@@ -165,17 +165,6 @@
     }
     return [...found];
   }
-  function uniqueEntries(entries) {
-    const seen = new Set();
-    return entries.filter((entry) => {
-      const key = [entry.name, entry.api, entry.profile].join('|');
-      if (seen.has(key)) {
-        return false;
-      }
-      seen.add(key);
-      return true;
-    });
-  }
   function addMeta(parent, label, value) {
     const box = node('div', 'meta-box');
     append(box, node('span', 'meta-label', label), node('strong', '', value));
@@ -225,11 +214,8 @@
   }
   function renderEnum(row, body) {
     const family = aliasesFor(row);
-    const relatives = family.filter((name) => name !== row.name);
-    const familyRows = family.map((name) => maps.enum.get(name));
-    const extensions = uniqueEntries(familyRows.flatMap((item) => item.extensions));
-    const features = uniqueEntries(familyRows.flatMap((item) => item.features));
-    const removed = uniqueEntries(familyRows.flatMap((item) => item.removed));
+    const relatives = family.filter((name) => name !== row.name && name !== row.alias_of);
+    const { extensions, features, removed, groups } = row;
     const requirements = firstRequirements(features);
     if (requirements.length) {
       const meta = node('div', 'meta-grid');
@@ -249,8 +235,7 @@
     if (row.comment) {
       body.append(section('Registry note', node('p', '', row.comment)));
     }
-    const groups = [...new Set(familyRows.flatMap((item) => item.groups))];
-    const groupCommands = [...new Set(familyRows.flatMap((item) => item.group_commands))].sort();
+    const groupCommands = row.group_commands;
     if (groups.length) {
       body.append(section('Registry parameter groups', links('group', groups)));
     }
