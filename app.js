@@ -2,14 +2,14 @@
   'use strict';
   let data;
   try {
-    const response = await fetch('data.json');
+    const response = await fetch('data/gl.xml');
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    data = window.hydrateRegistry(await response.json());
+    data = window.hydrateRegistry(await response.text());
   } catch (error) {
     document.querySelector('#result-heading').textContent = 'Data unavailable';
     document.querySelector('#detail').textContent = location.protocol === 'file:'
-      ? 'Serve this directory over HTTP to load data.json. See the README for the command.'
-      : `Could not load data.json: ${error.message}`;
+      ? 'Serve this directory over HTTP to load gl.xml. See the README for the command.'
+      : `Could not load gl.xml: ${error.message}`;
     return;
   }
   const kinds = {enum: data.enums, command: data.commands, group: data.groups, extension: data.extensions, feature: data.features};
@@ -268,12 +268,15 @@
   for (const [kind, rows] of Object.entries(kinds)) document.querySelector(`#count-${kind}`).textContent = rows.length.toLocaleString();
   document.querySelector('#count-all').textContent = Object.values(kinds).reduce((n, rows) => n + rows.length, 0).toLocaleString();
   const source = document.querySelector('#source');
-  if (data.source_url && data.source_revision) {
-    source.replaceChildren(document.createTextNode('Source: '), external(data.source_url,
-      `Khronos gl.xml @ ${data.source_revision.slice(0, 12)}`));
-  } else {
-    source.textContent = `Source: ${data.source} (GitHub revision unknown)`;
-  }
+  source.textContent = 'Source: Khronos OpenGL Registry';
+  fetch('data/source.json').then(response => {
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  }).then(provenance => {
+    if (!provenance.source_url || !provenance.revision) return;
+    const anchor = external(provenance.source_url, `gl.xml @ ${provenance.revision.slice(0, 12)}`);
+    source.replaceChildren(document.createTextNode('Source: '), anchor);
+  }).catch(() => {});
   clearSearch.hidden = !search.value;
   search.addEventListener('input', () => { clearSearch.hidden = !search.value; visible = 80; drawResults(); });
   clearSearch.addEventListener('click', () => {
